@@ -22,6 +22,7 @@ import pdfkit
 from pdfminer import high_level
 from PyPDF2 import PdfFileMerger
 
+
 # Set file dependencies as global variables
 COVERSHEET_DATA_SOURCE = r'S:\Genetics\Bioinformatics\NGS\200511_BlueprintExport\src\html_db.csv'
 COVERSHEET_TEMPLATE = r'S:\Genetics\Bioinformatics\NGS\200511_BlueprintExport\src\report_template.html'
@@ -29,17 +30,26 @@ PATH_TO_WKHTMLTOPDF= r'\\gstt.local\shared\Genetics_Data2\Array\Software\wkhtmlt
 
 
 def list_blueprint_reports(directory):
-
+	"""Return a list of blueprint report paths in a directory. Exits if no reports found.
+	Arguments:
+		directory(str): A directory containing blueprint report pdfs
+	Returns:
+		blueprint_reports(List): A list of all reports found. E.g.:
+		    [
+				WindowsPath('S:/reports/report_test.pdf'),
+				WindowsPath('S:/reports/report_test2.pdf')
+			]
+	"""
 	dir_path = Path(directory).absolute()
 	
 	if not dir_path.exists() or not dir_path.is_dir():
 		exit("Input path is not an existing directory")
 
-	# Get list of PDF files in input directory
-	#input_dir = os.path.dirname(os.path.realpath(directory))
+	# Get list of PDF files in input directory. 
+	# Blueprint reports must be pdf files whose filenames begin with "report".
 	blueprint_reports = list(dir_path.glob("report*.pdf"))
 
-	### Do nothing if rfiles is empty
+	# Return list of blueprint reports or exit of no reports were found.
 	if blueprint_reports:
 		return(blueprint_reports)
 	else:
@@ -78,7 +88,7 @@ def get_coversheet_data(family_identifier):
 	for row in data_rows:
 		patient_details.append(
 			PatientCoversheetData(
-			   row[1] + ' ' + row[0], # patient full name 
+			   row[1].capitalize() + ' ' + row[0].capitalize(), # patient firstname and surname, separated by a space
 			   row[2].split(' ')[0], # patient date of birth (split from timestamp)
 			   row[5], # patient identifier or PRU
 			   row[4].replace(' ', ''), # patient nhsno
@@ -94,7 +104,7 @@ def get_coversheet_data(family_identifier):
 def generate_report_with_coversheet(report, patient_details, clincian, address, todays_date, output_file_id):
 	"""Create new blueprint report PDF with coversheet.
 	Arguments:
-		report(str): Path to a blueprint report PDF
+		report(str): Path to a blueprint report PDF e.g. WindowsPath('S:/reports/report_test.pdf')
 		patient_details(list): A list of PatientCoversheetData() objects
 		clinician(str): Name of referring clinician in HTML format
 		address(str): Address of referring clinician in HTML format
